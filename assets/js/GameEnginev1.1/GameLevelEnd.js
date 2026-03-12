@@ -42,7 +42,7 @@ class GameLevelEnd {
     };
     
     const image_src_end = path + "/images/gamify/TransparentEnd.png";
-    const image_data_end = {
+    const image_data_end = {+te
         name: 'end',
         id: 'end-background',
         greeting: "The End opens before you, a vast black void in the distance. The stone beneath your feet is yellowish and hard, and the air tingles.",
