@@ -5,7 +5,7 @@ import Npc from './essentials/Npc.js';
 import GameControl from './essentials/GameControl.js';
 import GameLevelStarWars from './GameLevelStarWars.js';
 
-class GameLevelDoors {
+class GameLevelMaze {
   constructor(gameEnv) {
     let width = gameEnv.innerWidth;
     let height = gameEnv.innerHeight;
@@ -105,4 +105,4 @@ class GameLevelDoors {
 
 }
 
-export default GameLevelDoors;
+export default GameLevelMaze;

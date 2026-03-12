@@ -13,7 +13,9 @@ permalink: /gamify/escapethetower
     // Adnventure Game assets locations
     import Core from "{{site.baseurl}}/assets/js/GameEnginev1/essentials/Game.js";
     import GameControl from "{{site.baseurl}}/assets/js/GameEnginev1/essentials/GameControl.js";
-    import GameLevelWater from "{{site.baseurl}}/assets/js/GameEnginev1/GameLevelWater.js";
+    import GameLevelMaze from "{{site.baseurl}}/assets/js/GameEnginev1.1/GameLevelMaze.js";
+    import GameLevelDoors from "{{site.baseurl}}/assets/js/GameEnginev1.1/GameLevelDoors.js";
+    import GameLevelForest from "{{site.baseurl}}/assets/js/GameEnginev1.1/GameLevelForest.js";
     import { pythonURI, javaURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
 
     const gameLevelClasses = [GameLevelMaze, GameLevelDoors, GameLevelForest];
