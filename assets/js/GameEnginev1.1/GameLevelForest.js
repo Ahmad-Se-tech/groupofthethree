@@ -1,5 +1,5 @@
 // Final Level — The Whispering Forest
-// Save as: assets/js/GameEnginev1/GameLevelForest.js
+// Save as: assets/js/GameEnginev1.1/GameLevelForest.js
 
 import GameEnvBackground from './essentials/GameEnvBackground.js';
 import Player from './essentials/Player.js';
