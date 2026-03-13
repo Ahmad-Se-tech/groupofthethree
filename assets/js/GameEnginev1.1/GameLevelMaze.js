@@ -1,3 +1,9 @@
+// Second Floor - The Maze
+// Save as: assets/js/GameEnginev1.1/GameLevelMaze/GameLevelMaze.js
+
+import GameEnvBackground from './essentials/GameEnvBackground.js';
+import Player from './essentials/Player.js';
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
