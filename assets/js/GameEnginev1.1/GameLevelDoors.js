@@ -6,6 +6,7 @@ import Npc from './essentials/Npc.js';
 import DialogueSystem from './essentials/DialogueSystem.js';
 import GameControl from './essentials/GameControl.js';
 import GameLevelForest from './GameLevelForest.js';
+import Coin from './Coin.js';
 
 class GameLevelDoors {
   constructor(gameEnv) {
@@ -264,6 +265,15 @@ class GameLevelDoors {
                 }
         };
     });
+    const sprite_data_coin = {
+        id: 'coin',
+        greeting: false,
+        INIT_POSITION: { x: 0.5, y: 0.8 },
+        color: '#FFD700',
+        hitbox: { widthPercentage: 0.0, heightPercentage: 0.0 },
+        zIndex: 12,
+        value: 1
+};
 
     // ── Level class list ──────────────────────────────────────────────────────
     this.classes = [
@@ -272,6 +282,7 @@ class GameLevelDoors {
         { class: Npc,               data: sprite_data_wanderer },
         { class: Npc,               data: sprite_data_soul1 },
         { class: Npc,               data: sprite_data_soul2 },
+        { class: Coin,              data: sprite_data_coin },
         ...doorSprites.map(data => ({ class: Npc, data }))
     ];
   }
