@@ -188,7 +188,7 @@ class GameLevelForestWin {
         <div style="display:flex;flex-direction:column;gap:20px;text-align:center;max-width:480px;width:100%">
           <div>
             <div style="color:#506030;font-size:10px;letter-spacing:3px;margin-bottom:4px">GAME DESIGN</div>
-            <div style="color:#c0b898;font-size:14px">Your Name Here</div>
+            <div style="color:#c0b898;font-size:14px">Aarav- Dev. of Maze, Fin- Dev. of Doors, Ahmad- Dev. of Forest, All coders made the credits</div>
           </div>
           <div>
             <div style="color:#506030;font-size:10px;letter-spacing:3px;margin-bottom:4px">BUILT WITH</div>
