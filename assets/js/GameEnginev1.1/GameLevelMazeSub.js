@@ -1,11 +1,14 @@
+
 // Third Level — The Maze of Shadows (sublevel)
 // Save as: assets/js/GameEnginev1.1/GameLevelMazeSub.js
+// Launched by the Gate Keeper NPC in GameLevelMaze.js via GameControl.
 
 import GameEnvBackground from './essentials/GameEnvBackground.js';
 import Player from './essentials/Player.js';
 import Npc from './essentials/Npc.js';
 import Barrier from './essentials/Barrier.js';
 import DialogueSystem from './essentials/DialogueSystem.js';
+import GameControl from './essentials/GameControl.js';
 import GameLevelDoors from './GameLevelDoors.js';
 
 class GameLevelMazeSub {
@@ -13,7 +16,6 @@ class GameLevelMazeSub {
     console.log("Initializing GameLevelMazeSub...");
 
     this.gameEnv = gameEnv;
-    gameEnv.coinsCollected = 0;
 
     let width  = gameEnv.innerWidth;
     let height = gameEnv.innerHeight;
@@ -28,15 +30,16 @@ class GameLevelMazeSub {
     };
 
     // ── Player ────────────────────────────────────────────────────────────────
+    const OCTOPUS_SCALE_FACTOR = 5;
     const sprite_data_octopus = {
       id: 'Octopus',
       greeting: "I must find my way through...",
       src: path + "/images/gamify/octopus.png",
-      SCALE_FACTOR: 5,
+      SCALE_FACTOR: OCTOPUS_SCALE_FACTOR,
       STEP_FACTOR: 1000,
       ANIMATION_RATE: 50,
       GRAVITY: true,
-      INIT_POSITION: { x: 0.05, y: 0.82 },
+      INIT_POSITION: { x: 0.05, y: 0.82 },  // bottom-left start
       pixels: { height: 250, width: 167 },
       orientation: { rows: 3, columns: 2 },
       down:      { row: 0, start: 0, columns: 2 },
@@ -51,7 +54,12 @@ class GameLevelMazeSub {
       keypress: { up: 87, left: 65, down: 83, right: 68 }
     };
 
-    // ── Barrier helper ────────────────────────────────────────────────────────
+    // ────────────────────────────────────────────────────────────────────────
+    // BARRIER HELPER
+    // Converts relative (0.0–1.0) coords to absolute pixels.
+    // color is applied via a CSS data URI so barriers render as styled
+    // solid blocks — dark stone look — without needing an image file.
+    // ────────────────────────────────────────────────────────────────────────
     function b(id, rx, ry, rw, rh) {
       return {
         id,
@@ -59,189 +67,97 @@ class GameLevelMazeSub {
         y:      Math.round(ry * height),
         width:  Math.round(rw * width),
         height: Math.round(rh * height),
+        // A 1×1 dark stone colour rendered via inline data URI.
+        // The engine scales this to the barrier dimensions automatically.
         src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        // Override the tint with CSS if the engine supports it, otherwise
+        // the dark fallback colour below will show through.
         visible: true,
         hitbox: { widthPercentage: 1.0, heightPercentage: 1.0 },
         fromOverlay: true
       };
     }
 
-    // ── Borders ───────────────────────────────────────────────────────────────
+    // ────────────────────────────────────────────────────────────────────────
+    // MAZE LAYOUT (relative coords, 0.0–1.0)
+    //
+    // Path: player starts bottom-left (S), must reach Exit Warden top-right (E)
+    //
+    //  ┌──────────────────────────────────────────┐
+    //  │                                      [E] │
+    //  │  ┌────────────┐   ┌─────────────────┐   │
+    //  │  │            │   │                 │   │
+    //  │  │  ┌──────┐  │   │  ┌──────────┐  │   │
+    //  │  │  │      │  └───┘  │          │  └───┘
+    //  │  └──┘      └─────────┘          │
+    //  │                                 │
+    //  │ [S]                             │
+    //  └─────────────────────────────────┘
+    //
+    // ────────────────────────────────────────────────────────────────────────
+
+    // ── Outer border ──────────────────────────────────────────────────────────
     const border_top    = b('bt', 0.00, 0.00, 1.00, 0.03);
     const border_bottom = b('bb', 0.00, 0.95, 1.00, 0.05);
     const border_left   = b('bl', 0.00, 0.00, 0.03, 1.00);
     const border_right  = b('br', 0.97, 0.00, 0.03, 1.00);
 
+    // ── Row 1 horizontal walls ── (top section, gap right for exit approach)
+    // Left segment:  0.03 → 0.38  (gap 0.38–0.45)
     const h1a = b('h1a', 0.03, 0.18, 0.35, 0.03);
+    // Right segment: 0.45 → 0.72  (gap 0.72–0.80 open for exit corridor)
     const h1b = b('h1b', 0.45, 0.18, 0.27, 0.03);
+    // Far right:     0.80 → 0.97
     const h1c = b('h1c', 0.80, 0.18, 0.17, 0.03);
 
+    // ── Row 2 horizontal walls ── (middle section)
+    // Left:   0.03 → 0.20  (gap 0.20–0.27)
     const h2a = b('h2a', 0.03, 0.40, 0.17, 0.03);
+    // Center: 0.27 → 0.52  (gap 0.52–0.59)
     const h2b = b('h2b', 0.27, 0.40, 0.25, 0.03);
+    // Right:  0.59 → 0.80  (gap 0.80–0.97 open — leads up)
     const h2c = b('h2c', 0.59, 0.40, 0.21, 0.03);
 
+    // ── Row 3 horizontal walls ── (lower section)
+    // Left:    0.14 → 0.35  (gap 0.03–0.14 player start area)
     const h3a = b('h3a', 0.14, 0.62, 0.21, 0.03);
+    // Center:  0.45 → 0.70  (gap 0.35–0.45)
     const h3b = b('h3b', 0.45, 0.62, 0.25, 0.03);
+    // Right:   0.80 → 0.97  (gap 0.70–0.80)
     const h3c = b('h3c', 0.80, 0.62, 0.17, 0.03);
 
-    const v1a = b('v1a', 0.14, 0.03, 0.03, 0.15);
-    const v1b = b('v1b', 0.14, 0.21, 0.03, 0.19);
-    const v1c = b('v1c', 0.14, 0.65, 0.03, 0.30);
-    const v2a = b('v2a', 0.35, 0.03, 0.03, 0.37);
-    const v2b = b('v2b', 0.35, 0.65, 0.03, 0.30);
-    const v3a = b('v3a', 0.52, 0.21, 0.03, 0.19);
-    const v3b = b('v3b', 0.52, 0.65, 0.03, 0.30);
-    const v4a = b('v4a', 0.72, 0.03, 0.03, 0.37);
-    const v4b = b('v4b', 0.72, 0.43, 0.03, 0.22);
-    const v5a = b('v5a', 0.80, 0.21, 0.03, 0.19);
+    // ── Vertical walls ────────────────────────────────────────────────────────
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // COINS
-    // Plain <div> elements injected directly into #gameContainer.
-    // Positions are hand-picked to sit inside open maze corridors.
-    // A setInterval checks player overlap every 100ms and removes coins on hit.
-    // Once all 5 are collected the interval clears itself — no more spawning.
-    // ─────────────────────────────────────────────────────────────────────────
+    // Left inner column — gap between rows 2 and 3 (0.43–0.62) for passage
+    const v1a = b('v1a', 0.14, 0.03, 0.03, 0.15);  // top → row1
+    const v1b = b('v1b', 0.14, 0.21, 0.03, 0.19);  // row1 → row2
+    const v1c = b('v1c', 0.14, 0.65, 0.03, 0.30);  // row3 → bottom
 
-    const COIN_SIZE   = 28;
-    const COINS_NEEDED = 5;
+    // Center-left column — gap at row2 level
+    const v2a = b('v2a', 0.35, 0.03, 0.03, 0.37);  // top → row2
+    const v2b = b('v2b', 0.35, 0.65, 0.03, 0.30);  // row3 → bottom
 
-    // One coin per open corridor so the player must explore the whole maze
-    const coinPositions = [
-      { rx: 0.08, ry: 0.80 },  // bottom-left start area
-      { rx: 0.24, ry: 0.75 },  // bottom-center corridor
-      { rx: 0.40, ry: 0.80 },  // gap between h3a and h3b
-      { rx: 0.63, ry: 0.52 },  // mid-right open cell
-      { rx: 0.88, ry: 0.10 },  // upper-right exit corridor
-    ];
+    // Center column — gap between row1 and row2
+    const v3a = b('v3a', 0.52, 0.21, 0.03, 0.19);  // row1 → row2
+    const v3b = b('v3b', 0.52, 0.65, 0.03, 0.30);  // row3 → bottom
 
-    // Wipe any stale coins / HUD from a previous level load
-    document.querySelectorAll('.maze-coin').forEach(el => el.remove());
-    const oldHUD = document.getElementById('coinHUD');
-    if (oldHUD) oldHUD.remove();
-    if (gameEnv._coinInterval) {
-      clearInterval(gameEnv._coinInterval);
-      gameEnv._coinInterval = null;
-    }
+    // Right inner column — gap at row3 level
+    const v4a = b('v4a', 0.72, 0.03, 0.03, 0.37);  // top → row2
+    const v4b = b('v4b', 0.72, 0.43, 0.03, 0.22);  // row2 → row3
 
-    const container = document.getElementById('gameContainer') ?? document.body;
-    const coinEls   = [];
+    // Far-right column — forms exit corridor on right side
+    const v5a = b('v5a', 0.80, 0.21, 0.03, 0.19);  // row1 → row2
 
-    coinPositions.forEach((pos) => {
-      const el = document.createElement('div');
-      el.className = 'maze-coin';
-      Object.assign(el.style, {
-        position:       'absolute',
-        left:           (Math.round(pos.rx * width)  - COIN_SIZE / 2) + 'px',
-        top:            (Math.round(pos.ry * height) - COIN_SIZE / 2) + 'px',
-        width:          COIN_SIZE + 'px',
-        height:         COIN_SIZE + 'px',
-        borderRadius:   '50%',
-        background:     'radial-gradient(circle at 35% 35%, #FFE566, #FFB800 60%, #CC8800)',
-        border:         '2px solid #996600',
-        boxShadow:      '0 0 8px 3px rgba(255,200,0,0.6)',
-        zIndex:         '50',
-        display:        'flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        fontSize:       '14px',
-        color:          '#7A4F00',
-        fontWeight:     'bold',
-        pointerEvents:  'none',
-        userSelect:     'none',
-      });
-      el.textContent = '✦';
-      container.appendChild(el);
-      coinEls.push(el);
-    });
-
-    // HUD
-    const hud = document.createElement('div');
-    hud.id = 'coinHUD';
-    Object.assign(hud.style, {
-      position:      'fixed',
-      top:           '12px',
-      left:          '50%',
-      transform:     'translateX(-50%)',
-      background:    'rgba(0,0,0,0.7)',
-      color:         '#FFD700',
-      font:          'bold 18px serif',
-      padding:       '6px 20px',
-      borderRadius:  '20px',
-      border:        '2px solid #FFB800',
-      zIndex:        '10000',
-      userSelect:    'none',
-      letterSpacing: '1px',
-      textShadow:    '0 0 8px #FFD700',
-      pointerEvents: 'none',
-    });
-    hud.textContent = `✦ 0 / ${COINS_NEEDED} coins`;
-    document.body.appendChild(hud);
-
-    function updateHUD() {
-      const n = gameEnv.coinsCollected;
-      if (n >= COINS_NEEDED) {
-        hud.textContent  = `✦ ${COINS_NEEDED} / ${COINS_NEEDED}  — Find the Exit Warden!`;
-        hud.style.color  = '#00FF88';
-        hud.style.border = '2px solid #00FF88';
-        hud.style.textShadow = '0 0 8px #00FF88';
-      } else {
-        hud.textContent  = `✦ ${n} / ${COINS_NEEDED} coins`;
-        hud.style.color  = '#FFD700';
-        hud.style.border = '2px solid #FFB800';
-        hud.style.textShadow = '0 0 8px #FFD700';
-      }
-    }
-
-    // Collision loop
-    const collisionInterval = setInterval(() => {
-      const playerCanvas = document.getElementById('Octopus');
-      if (!playerCanvas) return;
-
-      const pL = parseInt(playerCanvas.style.left || '0', 10);
-      const pT = parseInt(playerCanvas.style.top  || '0', 10);
-      const pR = pL + playerCanvas.width;
-      const pB = pT + playerCanvas.height;
-
-      for (let i = coinEls.length - 1; i >= 0; i--) {
-        const el = coinEls[i];
-        if (!el.parentNode) {
-          coinEls.splice(i, 1);
-          continue;
-        }
-
-        const cL = parseInt(el.style.left, 10);
-        const cT = parseInt(el.style.top,  10);
-        const cR = cL + COIN_SIZE;
-        const cB = cT + COIN_SIZE;
-
-        if (pL < cR && pR > cL && pT < cB && pB > cT) {
-          el.remove();
-          coinEls.splice(i, 1);
-          gameEnv.coinsCollected += 1;
-          updateHUD();
-        }
-      }
-
-      // Stop once all collected — coins are gone, no reason to keep polling
-      if (gameEnv.coinsCollected >= COINS_NEEDED) {
-        clearInterval(collisionInterval);
-        gameEnv._coinInterval = null;
-      }
-    }, 100);
-
-    gameEnv._coinInterval = collisionInterval;
-
-    // ── NPCs ──────────────────────────────────────────────────────────────────
-
+    // ── NPC: Whispering Shadow — bottom center, reachable early ──────────────
+    const sprite_greet_shadow = "...the exit lies where the walls grow thin...";
     const sprite_data_shadow = {
       id: 'Whispering Shadow',
-      greeting: "...the exit lies where the walls grow thin...",
+      greeting: sprite_greet_shadow,
       src: path + "/images/gamify/tux.png",
       SCALE_FACTOR: 10,
       ANIMATION_RATE: 50,
       pixels: { height: 256, width: 352 },
-      INIT_POSITION: { x: 0.22, y: 0.72 },
+      INIT_POSITION: { x: 0.22, y: 0.72 },  // bottom open corridor, not blocking
       orientation: { rows: 8, columns: 11 },
       down: { row: 5, start: 0, columns: 3 },
       hitbox: { widthPercentage: 0.1, heightPercentage: 0.2 },
@@ -249,24 +165,32 @@ class GameLevelMazeSub {
         "...go north. Or was it south? I forget...",
         "The walls shift when you're not looking. Trust nothing.",
         "I've wandered here for ages. The exit... it moves.",
-        "Collect all five golden coins. Only then will the Warden open the gate.",
+        "Follow the cold air. It always leads somewhere."
       ],
-      reaction: function() { if (this.dialogueSystem) this.showReactionDialogue(); },
+      reaction: function() {
+        if (this.dialogueSystem) this.showReactionDialogue();
+        else console.log(sprite_greet_shadow);
+      },
       interact: function() {
-        if (this.dialogueSystem?.isDialogueOpen()) { this.dialogueSystem.closeDialogue(); return; }
+        if (this.dialogueSystem && this.dialogueSystem.isDialogueOpen()) {
+          this.dialogueSystem.closeDialogue();
+          return;
+        }
         if (!this.dialogueSystem) this.dialogueSystem = new DialogueSystem();
         this.showRandomDialogue();
       }
     };
 
+    // ── NPC: Lantern Keeper — mid-maze open cell, not blocking any passage ────
+    const sprite_greet_lantern = "Take this light. The dark ones fear it.";
     const sprite_data_lantern = {
       id: 'Lantern Keeper',
-      greeting: "Take this light. The dark ones fear it.",
+      greeting: sprite_greet_lantern,
       src: path + "/images/gamify/octocat.png",
       SCALE_FACTOR: 10,
       ANIMATION_RATE: 50,
       pixels: { height: 301, width: 801 },
-      INIT_POSITION: { x: 0.60, y: 0.50 },
+      INIT_POSITION: { x: 0.60, y: 0.50 },  // open cell between v3 and v4, row2–row3
       orientation: { rows: 1, columns: 4 },
       down: { row: 0, start: 0, columns: 3 },
       hitbox: { widthPercentage: 0.1, heightPercentage: 0.1 },
@@ -274,57 +198,54 @@ class GameLevelMazeSub {
         "The shadow that hunts you knows where you're going.",
         "South corridor. Bottom row. That is all I'll say.",
         "Keep moving. Standing still is how the maze wins.",
-        "Find all five golden coins — then seek the Exit Warden in the top-right.",
+        "You're the third wanderer this week. The others... didn't make it."
       ],
-      reaction: function() { if (this.dialogueSystem) this.showReactionDialogue(); },
+      reaction: function() {
+        if (this.dialogueSystem) this.showReactionDialogue();
+        else console.log(sprite_greet_lantern);
+      },
       interact: function() {
-        if (this.dialogueSystem?.isDialogueOpen()) { this.dialogueSystem.closeDialogue(); return; }
+        if (this.dialogueSystem && this.dialogueSystem.isDialogueOpen()) {
+          this.dialogueSystem.closeDialogue();
+          return;
+        }
         if (!this.dialogueSystem) this.dialogueSystem = new DialogueSystem();
         this.showRandomDialogue();
       }
     };
 
+    // ── NPC: Exit Warden — top-right open cell, clear of all walls ───────────
+    const sprite_greet_warden = "You made it through. The exit is right here.";
     const sprite_data_warden = {
       id: 'Exit Warden',
-      greeting: "You made it through. The exit is right here.",
+      greeting: sprite_greet_warden,
       src: path + "/images/gamify/robot.png",
       SCALE_FACTOR: 10,
       ANIMATION_RATE: 100,
       pixels: { height: 316, width: 627 },
-      INIT_POSITION: { x: 0.86, y: 0.06 },
+      INIT_POSITION: { x: 0.86, y: 0.06 },  // top-right cell, above h1c, right of v4
       orientation: { rows: 3, columns: 6 },
       down: { row: 1, start: 0, columns: 6 },
       hitbox: { widthPercentage: 0.1, heightPercentage: 0.2 },
-      reaction: function() { if (this.dialogueSystem) this.showReactionDialogue(); },
+      dialogues: [
+        "You made it. Not many do.",
+        "The maze is behind you now. Step through.",
+        "Quickly — something is still in there. Go."
+      ],
+      reaction: function() {
+        if (this.dialogueSystem) this.showReactionDialogue();
+        else console.log(sprite_greet_warden);
+      },
       interact: function() {
-        const collected = gameEnv.coinsCollected ?? 0;
-
-        if (this.dialogueSystem?.isDialogueOpen()) {
+        if (this.dialogueSystem && this.dialogueSystem.isDialogueOpen()) {
           this.dialogueSystem.closeDialogue();
           return;
         }
         if (!this.dialogueSystem) this.dialogueSystem = new DialogueSystem();
-
-        // Gate: not enough coins
-        if (collected < COINS_NEEDED) {
-          this.dialogueSystem.showDialogue(
-            `The gate is sealed. You carry ${collected} of ${COINS_NEEDED} coins. ` +
-            `Find the remaining ${COINS_NEEDED - collected} before I can open it.`,
-            "Exit Warden",
-            this.spriteData?.src ?? ""
-          );
-          this.dialogueSystem.addButtons([{
-            text: "I'll find them",
-            action: () => this.dialogueSystem.closeDialogue()
-          }]);
-          return;
-        }
-
-        // Gate open
         this.dialogueSystem.showDialogue(
-          "You found all five coins and navigated the maze. The gate pulses with light. Ready to move on?",
+          "You navigated the maze. The gate ahead pulses with light. Are you ready to move on?",
           "Exit Warden",
-          this.spriteData?.src ?? ""
+          this.spriteData.src
         );
         this.dialogueSystem.addButtons([
           {
@@ -333,32 +254,36 @@ class GameLevelMazeSub {
             action: () => {
               this.dialogueSystem.closeDialogue();
 
-              // Cleanup
-              document.querySelectorAll('.maze-coin').forEach(el => el.remove());
-              if (gameEnv._coinInterval) { clearInterval(gameEnv._coinInterval); gameEnv._coinInterval = null; }
-              const h = document.getElementById('coinHUD');
-              if (h) h.remove();
-
               const primaryGame = gameEnv.gameControl;
+
               const fade = document.createElement('div');
               Object.assign(fade.style, {
-                position: 'fixed', top: '0', left: '0',
+                position: 'fixed',
+                top: '0', left: '0',
                 width: '100%', height: '100%',
-                backgroundColor: '#000', opacity: '0',
+                backgroundColor: '#000',
+                opacity: '0',
                 transition: 'opacity 0.8s ease-in-out',
-                zIndex: '9999', pointerEvents: 'none'
+                zIndex: '9999',
+                pointerEvents: 'none'
               });
               document.body.appendChild(fade);
 
               requestAnimationFrame(() => {
                 fade.style.opacity = '1';
                 setTimeout(() => {
+                  // The engine stacks canvases without removing old ones.
+                  // Manually wipe everything from #gameContainer except
+                  // #promptDropDown, then let transitionToLevel rebuild fresh.
                   const gameContainer = document.getElementById('gameContainer');
                   if (gameContainer) {
                     Array.from(gameContainer.children).forEach(child => {
-                      if (child.id !== 'promptDropDown') gameContainer.removeChild(child);
+                      if (child.id !== 'promptDropDown') {
+                        gameContainer.removeChild(child);
+                      }
                     });
                   }
+
                   const topGame = primaryGame?.parentControl || primaryGame;
                   if (topGame) {
                     topGame.levelClasses = [GameLevelDoors];
@@ -368,7 +293,9 @@ class GameLevelMazeSub {
                   }
                   setTimeout(() => {
                     fade.style.opacity = '0';
-                    setTimeout(() => { if (fade.parentNode) fade.parentNode.removeChild(fade); }, 800);
+                    setTimeout(() => {
+                      if (fade.parentNode) fade.parentNode.removeChild(fade);
+                    }, 800);
                   }, 400);
                 }, 800);
               });
@@ -382,27 +309,32 @@ class GameLevelMazeSub {
       }
     };
 
-    // ── Class list ────────────────────────────────────────────────────────────
+    // ── Level class list ──────────────────────────────────────────────────────
     this.classes = [
       { class: GameEnvBackground, data: image_data_cave },
 
+      // Outer border
       { class: Barrier, data: border_top    },
       { class: Barrier, data: border_bottom },
       { class: Barrier, data: border_left   },
       { class: Barrier, data: border_right  },
 
+      // Row 1 walls
       { class: Barrier, data: h1a },
       { class: Barrier, data: h1b },
       { class: Barrier, data: h1c },
 
+      // Row 2 walls
       { class: Barrier, data: h2a },
       { class: Barrier, data: h2b },
       { class: Barrier, data: h2c },
 
+      // Row 3 walls
       { class: Barrier, data: h3a },
       { class: Barrier, data: h3b },
       { class: Barrier, data: h3c },
 
+      // Vertical walls
       { class: Barrier, data: v1a },
       { class: Barrier, data: v1b },
       { class: Barrier, data: v1c },
@@ -414,10 +346,12 @@ class GameLevelMazeSub {
       { class: Barrier, data: v4b },
       { class: Barrier, data: v5a },
 
-      { class: Npc, data: sprite_data_shadow  },
-      { class: Npc, data: sprite_data_lantern },
-      { class: Npc, data: sprite_data_warden  },
+      // NPCs — placed in open cells, not blocking corridors
+      { class: Npc,    data: sprite_data_shadow  },
+      { class: Npc,    data: sprite_data_lantern },
+      { class: Npc,    data: sprite_data_warden  },
 
+      // Player last
       { class: Player, data: sprite_data_octopus },
     ];
   }
