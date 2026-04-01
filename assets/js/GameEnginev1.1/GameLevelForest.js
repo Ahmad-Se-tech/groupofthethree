@@ -7,6 +7,7 @@ import Npc from './essentials/Npc.js';
 import DialogueSystem from './essentials/DialogueSystem.js';
 import GameControl from './essentials/GameControl.js';
 import GameLevelForestSub from './GameLevelForestSub.js';
+import AiNpc from './essentials/AiNpc.js';
 
 class GameLevelForest {
   constructor(gameEnv) {
@@ -230,6 +231,77 @@ class GameLevelForest {
         ]);
       }
     };
+    const sprite_src_historian = path + "/images/gamify/historyProf.png";
+  const sprite_greet_historian = "Hello! I'm an expert in history!";
+  const sprite_data_historian = {
+      id: "Professor History",
+      greeting: sprite_greet_historian,
+      src: sprite_src_historian,
+      SCALE_FACTOR: 5,
+      ANIMATION_RATE: 10,
+      pixels: { height: 263, width: 559 },
+      INIT_POSITION: { x: width * 0.53, y: height * 0.28 },
+      orientation: { rows: 4, columns: 9 },
+      
+      // LOCK: use ONLY the 4th row (index 3) for every direction/state
+      down:      { row: 3, start: 0, columns: 9 },
+      up:        { row: 3, start: 0, columns: 9 },
+      left:      { row: 3, start: 0, columns: 9 },
+      right:     { row: 3, start: 0, columns: 9 },
+      downLeft:  { row: 3, start: 0, columns: 9 },
+      downRight: { row: 3, start: 0, columns: 9 },
+      upLeft:    { row: 3, start: 0, columns: 9 },
+      upRight:   { row: 3, start: 0, columns: 9 },
+      
+      hitbox: { widthPercentage: 0.2, heightPercentage: 0.3 },
+      
+      // AI-specific properties (required for AiNpc utility)
+      expertise: "history",              // Topic area for backend
+      chatHistory: [],                   // Conversation memory
+      dialogues: [                       // Random greetings
+          "Ask me anything about history!",
+          "I have a depth of knowledge in history...",
+          "Do you want to learn about history?",
+          "Try out my chat session featureon history!",
+          "Are you curious about history? Talk to me!"
+      ],
+      knowledgeBase: {                   // Context hints for AI
+          history: [
+              {
+                  question: "What is ancient Egypt?",
+                  answer: "Ancient Egypt was one of the world's greatest civilizations, lasting over 3000 years! It had pyramids, pharaohs, and the mighty Nile River."
+              },
+              {
+                  question: "Tell me about the Renaissance",
+                  answer: "The Renaissance was a period of great cultural and artistic change in Europe, starting in Italy around the 14th century. Artists like Leonardo da Vinci and Michelangelo created amazing works!"
+              },
+              {
+                  question: "When was the Industrial Revolution?",
+                  answer: "The Industrial Revolution took place from the late 1700s to the 1800s. It changed how people worked, moving from farms to factories and inventing new machines!"
+              },
+              {
+                  question: "Who was Napoleon?",
+                  answer: "Napoleon Bonaparte was a French military leader who became Emperor. He conquered much of Europe but was eventually defeated and exiled."
+              }
+          ]
+      },
+      
+      // Orchestrator: Handle collision/proximity reactions
+      reaction: function() {
+          if (this.dialogueSystem) {
+              this.showReactionDialogue();
+          } else {
+              console.log(sprite_greet_historian);
+          }
+      },
+      
+      // Orchestrator: Handle player interaction (E key press)
+      interact: function() {
+          // Delegate to AiNpc utility for full AI conversation interface
+          AiNpc.showInteraction(this);
+      }
+  };
+
 
     // ── Level class list ──────────────────────────────────────────────────────
     this.classes = [
@@ -238,6 +310,7 @@ class GameLevelForest {
       { class: Npc,               data: sprite_data_wraith  },
       { class: Npc,               data: sprite_data_figure  },
       { class: Npc,               data: sprite_data_warden  },
+      { class: Npc,               data: sprite_data_historian  },
     ];
   }
 }
