@@ -9,6 +9,7 @@ import Barrier from './essentials/Barrier.js';
 import DialogueSystem from './essentials/DialogueSystem.js';
 import GameControl from './essentials/GameControl.js';
 import GameLevelDoors from './GameLevelDoors.js';
+import Coin from './Coin.js';
 
 class GameLevelMazeSub {
   constructor(gameEnv) {
@@ -241,6 +242,17 @@ class GameLevelMazeSub {
         ]);
       }
     };
+    const sprite_data_coin = {
+      id: 'coin',
+      greeting: false,
+      INIT_POSITION: { x: 0.3, y: 0.60 },
+      width: 40,
+      height: 70,
+      color: '#FFD700',
+      hitbox: { widthPercentage: 0.0, heightPercentage: 0.0 },
+      zIndex: 12,
+      value: 1
+    };
 
     // ── Level class list ──────────────────────────────────────────────────────
     this.classes = [
@@ -253,6 +265,8 @@ class GameLevelMazeSub {
       { class: Barrier, data: step4 },
       { class: Barrier, data: step5 },
 
+
+      { class: Coin, data: sprite_data_coin },
       { class: Npc,    data: sprite_data_shadow  },
       { class: Npc,    data: sprite_data_lantern },
       { class: Npc,    data: sprite_data_warden  },
