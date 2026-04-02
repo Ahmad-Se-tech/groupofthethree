@@ -40,7 +40,6 @@ class NpcAiChat {
 
     const wrapper = document.createElement('div');
 
-    // Dim overlay
     const overlay = document.createElement('div');
     overlay.className = 'npc-chat-overlay';
     Object.assign(overlay.style, {
@@ -51,7 +50,6 @@ class NpcAiChat {
     });
     overlay.addEventListener('click', () => this.close());
 
-    // Panel
     const panel = document.createElement('div');
     panel.className = 'npc-chat-panel';
     Object.assign(panel.style, {
@@ -73,7 +71,6 @@ class NpcAiChat {
     });
     panel.addEventListener('click', e => e.stopPropagation());
 
-    // Header
     const header = document.createElement('div');
     Object.assign(header.style, {
       display: 'flex', alignItems: 'center', gap: '10px',
@@ -109,7 +106,6 @@ class NpcAiChat {
     closeBtn.onclick = () => this.close();
     header.append(avatar, nameEl, closeBtn);
 
-    // Message list
     const msgList = document.createElement('div');
     Object.assign(msgList.style, {
       flex: '1', overflowY: 'auto',
@@ -122,7 +118,6 @@ class NpcAiChat {
     msgList.appendChild(this._bubble(greeting, 'npc'));
     this.history.push({ role: 'assistant', content: greeting });
 
-    // Input row
     const inputRow = document.createElement('div');
     Object.assign(inputRow.style, {
       display: 'flex', gap: '7px',
@@ -466,15 +461,17 @@ class GameLevelForestWin {
         villagerChat.open();
       }
     };
-       const sprite_data_coin = {
-        id: 'coin',
-        greeting: false,
-        INIT_POSITION: { x: 0.5, y: 0.8 },
-        color: '#FFD700',
-        hitbox: { widthPercentage: 0.0, heightPercentage: 0.0 },
-        zIndex: 12,
-        value: 1
-      };
+
+    // ── Coin ──────────────────────────────────────────────────────────────────
+    const sprite_data_coin = {
+      id: 'coin',
+      greeting: false,
+      INIT_POSITION: { x: 0.5, y: 0.8 },
+      color: '#FFD700',
+      zIndex: 12,
+      value: 1
+    };
+
     // ── Win screen + credits ──────────────────────────────────────────────────
     function _showWinScreen() {
       const screen = document.createElement('div');
@@ -551,7 +548,7 @@ class GameLevelForestWin {
       { class: Npc,               data: sprite_data_r2d2     },
       { class: Npc,               data: sprite_data_elder    },
       { class: Npc,               data: sprite_data_villager },
-      { class: Coin,              data: sprite_data_coin },
+      { class: Coin,              data: sprite_data_coin     },
     ];
   }
 }
