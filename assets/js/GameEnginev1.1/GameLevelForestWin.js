@@ -1,5 +1,6 @@
 // Forest Win Sublevel
 // Save as: assets/js/GameEnginev1.1/GameLevelForestWin.js
+import Coin from './Coin.js';
 
 import GameEnvBackground from './essentials/GameEnvBackground.js';
 import Player from './essentials/Player.js';
@@ -465,7 +466,15 @@ class GameLevelForestWin {
         villagerChat.open();
       }
     };
-
+       const sprite_data_coin = {
+        id: 'coin',
+        greeting: false,
+        INIT_POSITION: { x: 0.5, y: 0.8 },
+        color: '#FFD700',
+        hitbox: { widthPercentage: 0.0, heightPercentage: 0.0 },
+        zIndex: 12,
+        value: 1
+      };
     // ── Win screen + credits ──────────────────────────────────────────────────
     function _showWinScreen() {
       const screen = document.createElement('div');
@@ -542,6 +551,7 @@ class GameLevelForestWin {
       { class: Npc,               data: sprite_data_r2d2     },
       { class: Npc,               data: sprite_data_elder    },
       { class: Npc,               data: sprite_data_villager },
+      { class: Coin,              data: sprite_data_coin },
     ];
   }
 }
