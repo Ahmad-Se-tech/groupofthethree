@@ -232,9 +232,9 @@ class GameLevelForest {
       }
     };
     const sprite_src_historian = path + "/images/gamify/historyProf.png";
-  const sprite_greet_historian = "Hello! I'm an expert in history!";
+  const sprite_greet_historian = "Hello! I'm an expert in the forest!";
   const sprite_data_historian = {
-      id: "Professor History",
+      id: "Mr. Forest",
       greeting: sprite_greet_historian,
       src: sprite_src_historian,
       SCALE_FACTOR: 5,
@@ -256,32 +256,32 @@ class GameLevelForest {
       hitbox: { widthPercentage: 0.2, heightPercentage: 0.3 },
       
       // AI-specific properties (required for AiNpc utility)
-      expertise: "history",              // Topic area for backend
+      expertise: "The forest",              // Topic area for backend
       chatHistory: [],                   // Conversation memory
       dialogues: [                       // Random greetings
-          "Ask me anything about history!",
-          "I have a depth of knowledge in history...",
-          "Do you want to learn about history?",
-          "Try out my chat session featureon history!",
-          "Are you curious about history? Talk to me!"
+          "Ask me anything about the forest!",
+          "I have a depth of knowledge in the forest...",
+          "Do you want to learn about the forest?",
+          "Try out my chat session feature on the forest!",
+          "Are you curious about the forest? Talk to me!"
       ],
       knowledgeBase: {                   // Context hints for AI
           history: [
               {
-                  question: "What is ancient Egypt?",
-                  answer: "Ancient Egypt was one of the world's greatest civilizations, lasting over 3000 years! It had pyramids, pharaohs, and the mighty Nile River."
+                  question: "What is the forest?",
+                  answer: "The Whispering Forest is an ancient and disorienting place. The trees shift positions in the fog, and those who wander too long often lose their sense of direction entirely."
               },
               {
-                  question: "Tell me about the Renaissance",
-                  answer: "The Renaissance was a period of great cultural and artistic change in Europe, starting in Italy around the 14th century. Artists like Leonardo da Vinci and Michelangelo created amazing works!"
+                  question: "Who are the lost souls here?",
+                  answer: "The Wraith and the Dark Figure were once travelers like you. They chose wrong at the fork and became trapped — unable to leave, slowly forgetting where they came from."
               },
               {
-                  question: "When was the Industrial Revolution?",
-                  answer: "The Industrial Revolution took place from the late 1700s to the 1800s. It changed how people worked, moving from farms to factories and inventing new machines!"
+                  question: "What is the fork in the path?",
+                  answer: "Deep in the forest lies a fork with two paths. One leads out to safety. The other leads deeper into the dark, where no one returns. The Warden guards the entrance to it."
               },
               {
-                  question: "Who was Napoleon?",
-                  answer: "Napoleon Bonaparte was a French military leader who became Emperor. He conquered much of Europe but was eventually defeated and exiled."
+                  question: "How do I get through the forest?",
+                  answer: "peak to The Warden when you are ready to face the fork. Listen carefully to the lost souls before you go — their regrets are clues. The right path is the one that feels less inviting."
               }
           ]
       },
