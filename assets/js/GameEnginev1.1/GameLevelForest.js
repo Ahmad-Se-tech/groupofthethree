@@ -281,7 +281,7 @@ class GameLevelForest {
               },
               {
                   question: "How do I get through the forest?",
-                  answer: "peak to The Warden when you are ready to face the fork. Listen carefully to the lost souls before you go — their regrets are clues. The right path is the one that feels less inviting."
+                  answer: "Speak to The Warden when you are ready to face the fork. Listen carefully to the lost souls before you go — their regrets are clues. The right path is the one that feels less inviting."
               }
           ]
       },
