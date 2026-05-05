@@ -5,11 +5,11 @@
 import GameEnvBackground from './essentials/GameEnvBackground.js';
 import Player from './essentials/Player.js';
 import Npc from './essentials/Npc.js';
-import Barrier from './essentials/Barrier.js';
 import DialogueSystem from './essentials/DialogueSystem.js';
 import GameControl from './essentials/GameControl.js';
 import GameLevelDoors from './GameLevelDoors.js';
 import Coin from './Coin.js';
+import SplineBarrier from './SplineBarrier.js'; // ← replaces Barrier
 
 class GameLevelMazeSub {
   constructor(gameEnv) {
@@ -55,22 +55,18 @@ class GameLevelMazeSub {
     };
 
     // ── Spline barrier helper ─────────────────────────────────────────────────
-    // Each spline is a series of connected points forming a curved walkable surface.
     // points: array of [relX, relY] pairs (0.0–1.0 relative to screen)
-    // thickness: vertical depth of the barrier surface (relative)
-    function spline(id, points, thickness = 0.03) {
+    // SplineBarrier reads data.splinePoints (pixel coords), so we convert here.
+    function spline(id, points) {
       return {
         id,
-        points: points.map(([px, py]) => ({
+        splinePoints: points.map(([px, py]) => ({  // ← key must be 'splinePoints'
           x: Math.round(px * width),
           y: Math.round(py * height)
         })),
-        thickness: Math.round(thickness * height),
-        src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
         visible: true,
-        hitbox: { widthPercentage: 0.0, heightPercentage: 0.0 },
-        fromOverlay: true,
-        isSpline: true
+        color: '#8B4513',
+        lineWidth: 6,
       };
     }
 
@@ -305,12 +301,12 @@ class GameLevelMazeSub {
     this.classes = [
       { class: GameEnvBackground, data: image_data_cave },
 
-      { class: Barrier, data: seg1 },
-      { class: Barrier, data: seg2 },
-      { class: Barrier, data: seg3 },
-      { class: Barrier, data: seg4 },
-      { class: Barrier, data: seg5 },
-      { class: Barrier, data: seg6 },
+      { class: SplineBarrier, data: seg1 },  // ← was Barrier
+      { class: SplineBarrier, data: seg2 },
+      { class: SplineBarrier, data: seg3 },
+      { class: SplineBarrier, data: seg4 },
+      { class: SplineBarrier, data: seg5 },
+      { class: SplineBarrier, data: seg6 },
 
       { class: Coin,   data: sprite_data_coin    },
 
