@@ -39,7 +39,7 @@ class GameLevelMazeSub {
       STEP_FACTOR: 1000,
       ANIMATION_RATE: 50,
       GRAVITY: true,
-      INIT_POSITION: { x: 0.05, y: 0.82 },
+      INIT_POSITION: { x: 0.03, y: 0.88 },
       pixels: { height: 250, width: 167 },
       orientation: { rows: 3, columns: 2 },
       down:      { row: 0, start: 0, columns: 2 },
@@ -54,41 +54,87 @@ class GameLevelMazeSub {
       keypress: { up: 87, left: 65, down: 83, right: 68 }
     };
 
-    // ── Barrier helper ────────────────────────────────────────────────────────
-    function b(id, rx, ry, rw, rh) {
+    // ── Spline barrier helper ─────────────────────────────────────────────────
+    // Each spline is a series of connected points forming a curved walkable surface.
+    // points: array of [relX, relY] pairs (0.0–1.0 relative to screen)
+    // thickness: vertical depth of the barrier surface (relative)
+    function spline(id, points, thickness = 0.03) {
       return {
         id,
-        x:      Math.round(rx * width),
-        y:      Math.round(ry * height),
-        width:  Math.round(rw * width),
-        height: Math.round(rh * height),
+        points: points.map(([px, py]) => ({
+          x: Math.round(px * width),
+          y: Math.round(py * height)
+        })),
+        thickness: Math.round(thickness * height),
         src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
         visible: true,
         hitbox: { widthPercentage: 0.0, heightPercentage: 0.0 },
-        fromOverlay: true
+        fromOverlay: true,
+        isSpline: true
       };
     }
 
-    // ── Staircase platforms ───────────────────────────────────────────────────
+    // ── Pathway — winding spline road from [S] bottom-left to [E] top-right ──
     //
-    //                                         [E]
-    //                               ┌─────────┐
-    //                     ┌─────────┘
-    //           ┌─────────┘
-    // ┌─────────┘
-    // [S]
-    // └──────────────────────────────────────────┘  floor
+    //   [E] Warden ─────────────────────────────────────────╮
+    //                                               ╭───────╯
+    //                                Lantern ──────╮
+    //                         ╭────────────────────╯
+    //                   ╭─────╯
+    //             Shadow ──────╮
+    //         ╭────────────────╯
+    //    [S] ─╯
 
-    const floor = b('floor', 0.00, 0.90, 1.00, 0.10);
-    const step1 = b('step1', 0.03, 0.72, 0.22, 0.03);
-    const step2 = b('step2', 0.22, 0.55, 0.22, 0.03);
-    const step3 = b('step3', 0.41, 0.40, 0.22, 0.03);
-    const step4 = b('step4', 0.60, 0.25, 0.22, 0.03);
-    const step5 = b('step5', 0.75, 0.12, 0.22, 0.03);
+    const seg1 = spline('seg1', [
+      [0.03, 0.945],
+      [0.09, 0.940],
+      [0.20, 0.920],
+      [0.28, 0.895],
+    ]);
+
+    const seg2 = spline('seg2', [
+      [0.28, 0.895],
+      [0.38, 0.868],
+      [0.40, 0.830],
+      [0.36, 0.790],
+      [0.29, 0.760],
+    ]);
+
+    const seg3 = spline('seg3', [
+      [0.29, 0.760],
+      [0.22, 0.730],
+      [0.19, 0.690],
+      [0.23, 0.640],
+      [0.31, 0.610],
+    ]);
+
+    const seg4 = spline('seg4', [
+      [0.31, 0.610],
+      [0.42, 0.575],
+      [0.52, 0.545],
+      [0.55, 0.500],
+      [0.54, 0.455],
+    ]);
+
+    const seg5 = spline('seg5', [
+      [0.54, 0.455],
+      [0.52, 0.405],
+      [0.54, 0.360],
+      [0.60, 0.320],
+      [0.70, 0.290],
+    ]);
+
+    const seg6 = spline('seg6', [
+      [0.70, 0.290],
+      [0.80, 0.260],
+      [0.88, 0.220],
+      [0.94, 0.170],
+      [0.97, 0.120],
+    ]);
 
     // ── NPCs ──────────────────────────────────────────────────────────────────
 
-    const sprite_greet_shadow = "Keep climbing. The exit is above you.";
+    const sprite_greet_shadow = "Keep going. The path winds upward.";
     const sprite_data_shadow = {
       id: 'Whispering Shadow',
       greeting: sprite_greet_shadow,
@@ -96,15 +142,15 @@ class GameLevelMazeSub {
       SCALE_FACTOR: 10,
       ANIMATION_RATE: 50,
       pixels: { height: 256, width: 352 },
-      INIT_POSITION: { x: 0.26, y: 0.45 },
+      INIT_POSITION: { x: 0.30, y: 0.73 },
       orientation: { rows: 8, columns: 11 },
       down: { row: 5, start: 0, columns: 3 },
       hitbox: { widthPercentage: 0.1, heightPercentage: 0.2 },
       dialogues: [
-        "Keep climbing. The exit is above you.",
-        "Each step brings you closer. Don't look down.",
+        "Keep going. The path winds upward.",
+        "Each bend brings you closer. Don't look down.",
         "I've been here a while. You're the first to make it this far.",
-        "The top platform. That's where you need to go."
+        "Follow the road. It leads somewhere bright."
       ],
       reaction: function() {
         if (this.dialogueSystem) this.showReactionDialogue();
@@ -120,7 +166,7 @@ class GameLevelMazeSub {
       }
     };
 
-    const sprite_greet_lantern = "Almost there. One more jump.";
+    const sprite_greet_lantern = "Almost there. The road straightens ahead.";
     const sprite_data_lantern = {
       id: 'Lantern Keeper',
       greeting: sprite_greet_lantern,
@@ -128,14 +174,14 @@ class GameLevelMazeSub {
       SCALE_FACTOR: 10,
       ANIMATION_RATE: 50,
       pixels: { height: 301, width: 801 },
-      INIT_POSITION: { x: 0.63, y: 0.15 },
+      INIT_POSITION: { x: 0.45, y: 0.52 },
       orientation: { rows: 1, columns: 4 },
       down: { row: 0, start: 0, columns: 3 },
       hitbox: { widthPercentage: 0.1, heightPercentage: 0.1 },
       dialogues: [
-        "Almost there. One more jump.",
-        "The warden is just above. Don't stop now.",
-        "You've climbed further than most.",
+        "Almost there. The road straightens ahead.",
+        "The warden is just around the bend. Don't stop now.",
+        "You've walked further than most.",
         "I can see the exit from here. Keep going."
       ],
       reaction: function() {
@@ -160,7 +206,7 @@ class GameLevelMazeSub {
       SCALE_FACTOR: 10,
       ANIMATION_RATE: 100,
       pixels: { height: 316, width: 627 },
-      INIT_POSITION: { x: 0.82, y: 0.03 },
+      INIT_POSITION: { x: 0.90, y: 0.09 },
       orientation: { rows: 3, columns: 6 },
       down: { row: 1, start: 0, columns: 6 },
       hitbox: { widthPercentage: 0.1, heightPercentage: 0.2 },
@@ -180,7 +226,7 @@ class GameLevelMazeSub {
         }
         if (!this.dialogueSystem) this.dialogueSystem = new DialogueSystem();
         this.dialogueSystem.showDialogue(
-          "You climbed to the top. The gate ahead pulses with light. Are you ready to move on?",
+          "You followed the path all the way here. The gate ahead pulses with light. Are you ready to move on?",
           "Exit Warden",
           this.spriteData.src
         );
@@ -242,30 +288,31 @@ class GameLevelMazeSub {
         ]);
       }
     };
+
     const sprite_data_coin = {
       id: 'coin',
       greeting: false,
-      INIT_POSITION: { x: 0.3, y: 0.60 },
+      INIT_POSITION: { x: 0.42, y: 0.57 },
       width: 40,
       height: 70,
       color: '#FFD700',
       hitbox: { widthPercentage: 0.0, heightPercentage: 0.0 },
       zIndex: 12,
       value: 1
-};
+    };
 
     // ── Level class list ──────────────────────────────────────────────────────
     this.classes = [
       { class: GameEnvBackground, data: image_data_cave },
 
-      { class: Barrier, data: floor },
-      { class: Barrier, data: step1 },
-      { class: Barrier, data: step2 },
-      { class: Barrier, data: step3 },
-      { class: Barrier, data: step4 },
-      { class: Barrier, data: step5 },
-      
-      { class: Coin, data: sprite_data_coin },
+      { class: Barrier, data: seg1 },
+      { class: Barrier, data: seg2 },
+      { class: Barrier, data: seg3 },
+      { class: Barrier, data: seg4 },
+      { class: Barrier, data: seg5 },
+      { class: Barrier, data: seg6 },
+
+      { class: Coin,   data: sprite_data_coin    },
 
       { class: Npc,    data: sprite_data_shadow  },
       { class: Npc,    data: sprite_data_lantern },
