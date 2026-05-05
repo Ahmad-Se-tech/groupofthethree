@@ -66,7 +66,8 @@ class GameLevelMazeSub {
         })),
         visible: true,
         color: '#8B4513',
-        lineWidth: 6,
+        // Keep this fairly thick so collision detection remains reliable.
+        lineWidth: 22,
       };
     }
 
@@ -301,6 +302,9 @@ class GameLevelMazeSub {
     this.classes = [
       { class: GameEnvBackground, data: image_data_cave },
 
+      // Player first so movement applies before spline barriers resolve collision.
+      { class: Player, data: sprite_data_octopus },
+
       { class: SplineBarrier, data: seg1 },  // ← was Barrier
       { class: SplineBarrier, data: seg2 },
       { class: SplineBarrier, data: seg3 },
@@ -313,8 +317,6 @@ class GameLevelMazeSub {
       { class: Npc,    data: sprite_data_shadow  },
       { class: Npc,    data: sprite_data_lantern },
       { class: Npc,    data: sprite_data_warden  },
-
-      { class: Player, data: sprite_data_octopus },
     ];
   }
 }
