@@ -1,4 +1,4 @@
-import GameObject from '@assets/js/GameEnginev1.1/essentials/GameObject.js';
+import GameObject from './essentials/GameObject.js'; // ← fixed from @assets alias
 
 class SplineBarrier extends GameObject {
     constructor(data, gameEnv) {
@@ -10,7 +10,6 @@ class SplineBarrier extends GameObject {
             splinePoints = data.splinePoints;
         } else {
             console.warn('SplineBarrier: No valid splinePoints provided, using default curve');
-            // Provide a default simple curve as fallback
             splinePoints = [
                 { x: 100, y: 200 },
                 { x: 300, y: 100 },
@@ -18,10 +17,8 @@ class SplineBarrier extends GameObject {
             ];
         }
 
-        // Calculate bounds from spline points
         const bounds = SplineBarrier.calculateBounds(splinePoints);
 
-        // Set properties manually (since GameObject doesn't take data)
         this.splinePoints = splinePoints;
         this.visible = data.visible !== undefined ? data.visible : true;
         this.barrierColor = data.color || '#8B4513';
@@ -29,39 +26,32 @@ class SplineBarrier extends GameObject {
         this.splineBounds = bounds;
         this.id = data.id || 'spline_barrier';
 
-        // No hitbox - we use custom spline collision instead
         this.hitbox = {};
 
-        // Create a canvas for drawing the spline (not for collision)
         this.canvas = document.createElement('canvas');
         this.canvas.id = this.id;
         this.canvas.width = this.gameEnv.innerWidth;
         this.canvas.height = this.gameEnv.innerHeight;
         this.ctx = this.canvas.getContext('2d');
 
-        // Position canvas to cover the game area
         const container = this.gameEnv?.container;
         if (container) container.appendChild(this.canvas);
         this.canvas.style.position = 'absolute';
         this.canvas.style.left = '0px';
         this.canvas.style.top = `${this.gameEnv?.top || 0}px`;
-        this.canvas.style.pointerEvents = 'none'; // Don't intercept mouse events
-        this.canvas.style.zIndex = '15'; // Above background and other elements
+        this.canvas.style.pointerEvents = 'none';
+        this.canvas.style.zIndex = '15';
     }
 
     draw() {
-        // Draw spline curve on the spline barrier's canvas
         if (!this.ctx || !this.canvas) return;
         if (!this.visible) return;
 
-        // Clear canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Get curve points
         const curvePoints = SplineBarrier.getCurvePoints(this.splinePoints);
         if (curvePoints.length === 0) return;
 
-        // Draw the spline curve
         this.ctx.strokeStyle = this.barrierColor;
         this.ctx.lineWidth = this.lineWidth;
         this.ctx.lineCap = 'round';
@@ -78,30 +68,24 @@ class SplineBarrier extends GameObject {
     }
 
     update() {
-        // Draw the spline every frame
         this.draw();
 
-        // Find player
         const player = this.gameEnv?.gameObjects?.find(obj => obj.constructor?.name === 'Player');
         if (!player) return;
 
-        // Get curve points for collision detection
         const curvePoints = SplineBarrier.getCurvePoints(this.splinePoints);
         const collisionPoint = this.getCollisionPoint(player, curvePoints);
 
         if (collisionPoint) {
-            // Block player movement by pushing them away from the curve
             const playerCenter = player.getCenter();
             const dx = playerCenter.x - collisionPoint.x;
             const dy = playerCenter.y - collisionPoint.y;
             const dist = Math.hypot(dx, dy);
 
-            // Normalize and push away
             if (dist > 0) {
-                const pushX = (dx / dist) * 2; // Push strength
+                const pushX = (dx / dist) * 2;
                 const pushY = (dy / dist) * 2;
 
-                // Move player away from collision point
                 if (player.transform) {
                     player.transform.x += pushX;
                     player.transform.y += pushY;
@@ -115,19 +99,15 @@ class SplineBarrier extends GameObject {
     }
 
     destroy() {
-        // Remove from gameObjects array
         const idx = this.gameEnv?.gameObjects?.indexOf?.(this) ?? -1;
         if (idx > -1) this.gameEnv.gameObjects.splice(idx, 1);
     }
 
-    // Override to prevent parent's rectangular collision detection
     collisionChecks() {
         // Collision handled manually in update()
     }
 
-    // Override to prevent parent's rectangular collision detection
     isCollision(other) {
-        // Collision handled manually in update()
         return false;
     }
 
@@ -148,9 +128,8 @@ class SplineBarrier extends GameObject {
 
     getCollisionPoint(player, curvePoints) {
         const playerCenter = player.getCenter();
-        const collisionDistance = 20; // pixels
+        const collisionDistance = 20;
 
-        // Check if player is close to any curve point
         for (const point of curvePoints) {
             const distance = Math.hypot(point.x - playerCenter.x, point.y - playerCenter.y);
             if (distance < collisionDistance) {
@@ -162,9 +141,8 @@ class SplineBarrier extends GameObject {
 
     checkCurveCollision(player, curvePoints) {
         const playerCenter = player.getCenter();
-        const collisionDistance = 20; // pixels
+        const collisionDistance = 20;
 
-        // Check if player is close to any curve point
         for (const point of curvePoints) {
             const distance = Math.hypot(point.x - playerCenter.x, point.y - playerCenter.y);
             if (distance < collisionDistance) {
@@ -174,7 +152,6 @@ class SplineBarrier extends GameObject {
         return false;
     }
 
-    // Interpolates between point P1 and P2, using P0 and P3 as control points
     static catmullRom(p0, p1, p2, p3, t) {
         const t2 = t * t;
         const t3 = t2 * t;
@@ -187,11 +164,9 @@ class SplineBarrier extends GameObject {
         );
     }
 
-    // Generate curve positions
     static getCurvePoints(splinePoints, segments = 50) {
         const curvePoints = [];
 
-        // Safety check: if splinePoints is undefined or not an array, return empty array
         if (!splinePoints || !Array.isArray(splinePoints) || splinePoints.length < 2) {
             console.warn('SplineBarrier: Invalid splinePoints array', splinePoints);
             return curvePoints;
